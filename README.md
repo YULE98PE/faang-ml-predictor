@@ -38,6 +38,3 @@ Si deseas clonar este proyecto y ejecutarlo en tu computadora, sigue estos pasos
    ```bash
    streamlit run app.py
    ```
-*Proyecto desarrollado con fines académicos para la sustentación de la materia de Machine Learning.*
-* **Autor:** [Escribe tu nombre y apellido aquí]
-* **Institución:** [Nombre de tu Universidad]
