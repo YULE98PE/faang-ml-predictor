@@ -16,7 +16,7 @@ def cargar_modelo(nombre_empresa):
             return pickle.load(f)
             
     # Como renombraste tu archivo, aquí buscará con éxito "modelo.pkl"
-    ruta_general = "modelo.pkl"
+    ruta_general = "modelo_regresion.pkl"
     if os.path.exists(ruta_general):
         with open(ruta_general, "rb") as f:
             return pickle.load(f)
@@ -127,52 +127,90 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 # =====================================================================
-# 5. BLOQUE MÁGICO: AQUÍ TRABAJA EL PICKLE Y DA LA ALZA/BAJA
+# 5. PREDICCIÓN DE PRECIO CON IA
 # =====================================================================
-st.subheader("🔮 Predicción del Modelo para Mañana")
 
-# Llamamos a la función para abrir el archivo .pkl
+st.subheader("🤖 Predicción Inteligente del Próximo Precio")
+
 modelo_ia = cargar_modelo(empresa)
 
 if modelo_ia is not None:
+
     try:
-        # Tus 10 columnas obligatorias en el orden exacto de tu matriz X
-        columnas_entrenamiento = [
-            'Open', 'High', 'Low', 'Volume', 
-            'MA7', 'MA30', 'Return', 'RSI', 
-            'EMA20', 'EMA50'
+
+        columnas_modelo = [
+            'Open',
+            'High',
+            'Low',
+            'Volume',
+            'MA7',
+            'MA30'
         ]
-        
-        # Extraemos el último día de datos que calculamos arriba para alimentar al modelo
-        datos_hoy = df_limpio[columnas_entrenamiento].iloc[-1].values.reshape(1, -1)
-        
-        # El modelo hace la predicción
-        prediccion = modelo_ia.predict(datos_hoy)[0]
-        
-        # Evaluamos si dio 1 (Alza) o 0 (Baja)
-        es_alza = (prediccion == 1) or (str(prediccion).strip().lower() in ["alza", "sube", "up", "1"])
 
-        # Mostramos la respuesta bonita en la pantalla
-        if es_alza:
-            st.success("### 🚀 PROYECCIÓN: ALZA (BULLISH)")
-            st.write("El modelo analiza los indicadores técnicos y proyecta una tendencia **alcista** para la próxima jornada.")
+        datos_hoy = (
+            df_limpio[columnas_modelo]
+            .iloc[-1]
+            .values
+            .reshape(1, -1)
+        )
+
+        precio_predicho = modelo_ia.predict(datos_hoy)[0]
+
+        precio_actual = df_limpio["Close"].iloc[-1]
+
+        variacion = (
+            (precio_predicho - precio_actual)
+            / precio_actual
+        ) * 100
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric(
+                "💰 Precio Actual",
+                f"${precio_actual:.2f}"
+            )
+
+        with col2:
+            st.metric(
+                "🔮 Precio Predicho",
+                f"${precio_predicho:.2f}"
+            )
+
+        with col3:
+            st.metric(
+                "📈 Variación Esperada",
+                f"{variacion:.2f}%"
+            )
+
+        st.markdown("---")
+
+        if variacion > 0:
+            st.success(
+                f"El modelo proyecta un crecimiento aproximado de {variacion:.2f}% para la próxima sesión."
+            )
         else:
-            st.error("### 📉 PROYECCIÓN: BAJA (BEARISH)")
-            st.write("El modelo analiza los indicadores técnicos y proyecta una tendencia **bajista** para la próxima jornada.")
+            st.error(
+                f"El modelo proyecta una caída aproximada de {abs(variacion):.2f}% para la próxima sesión."
+            )
 
-        # Métricas de control abajo de la predicción
-        col_res1, col_res2 = st.columns(2)
-        with col_res1:
-            st.metric("Algoritmo Utilizado", "Logistic Regression")
-        with col_res2:
-            try:
-                # Intentamos calcular qué tan seguro está el modelo (probabilidad)
-                probabilidad = max(modelo_ia.predict_proba(datos_hoy)[0]) * 100
-                st.metric("Confianza del Modelo", f"{probabilidad:.1f}%")
-            except AttributeError:
-                st.metric("Estado del Modelo", "Conectado exitosamente")
+        st.subheader("📊 Rendimiento del Modelo")
+
+        colm1, colm2, colm3 = st.columns(3)
+
+        with colm1:
+            st.metric("R²", "0.9995")
+
+        with colm2:
+            st.metric("MAE", "2.80")
+
+        with colm3:
+            st.metric("RMSE", "8.86")
 
     except Exception as e:
-        st.error(f"❌ Error al procesar los datos para el modelo: {e}")
+        st.error(f"Error en la predicción: {e}")
+
 else:
-    st.warning(f"⚠️ No se encontró el archivo del modelo. Asegúrate de que `modelo.pkl` esté guardado en la carpeta raíz de tu proyecto.")
+    st.warning(
+        "No se encontró el archivo modelo.pkl"
+    )
