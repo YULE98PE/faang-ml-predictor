@@ -48,7 +48,7 @@ st.caption(
 )
 
 # Título Principal
-st.title(f"📊 Predicción y análisis inteligente de mercados financieros mediante Machine Learning | {empresa}")
+st.title(f"📊 Plataforma Inteligente de Análisis y Predicción Financiera | {empresa}")
 
 # =====================================================================
 # 3. CARGAR Y PROCESAR LOS DATOS (CÁLCULO DE TU MATRIZ X)
